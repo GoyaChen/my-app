@@ -1,6 +1,6 @@
 import Plot from 'react-plotly.js';
 import {useState, useEffect} from "react";
-import {Container, Slider, Button} from '@mui/material';
+import {Container, Slider, Button, Checkbox, FormControlLabel, ListItem, Grid, List} from '@mui/material';
 import {TreeView, TreeItem} from '@mui/lab';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -19,20 +19,19 @@ function App() {
     const [markColor, setMarkColor] = useState("red");
     const [lineColor, setLineColor] = useState("red");
     const [markSize, setMarkSize] = useState(12);
+    const [labels, setLabels] = useState([]);
+    // let labels = new Set();
 
     const { isLoading, error, data: options } = useQuery('repoData', () => {
-            var formdata = new FormData();
-            formdata.append("hierarchical", "False");
             return fetch(base_url + "voyage/", {
                 method: "OPTIONS",
-                body: formdata,
                 headers: {'Authorization': token}
             }).then(res => res.json())
         }
     )
 
     function isChildren(key) {
-        return key !== "id" && key !== "type" && key !== "label" && key !== "flatlabel"
+        return key !== "type" && key !== "label" && key !== "flatlabel"
     }
 
     function isLast(node) {
@@ -47,13 +46,25 @@ function App() {
             { Object.keys(nodes).map((key) =>
                 isChildren(key)
                 ? isLast(nodes[key])
-                        ? <TreeItem key={key} nodeId={""+count++} label={nodes[key].label}/>
+                        ? <ListItem key={key} disablePadding>
+                            <Checkbox  onChange={(event, checked) => handleCheck(checked, nodes[key].flatlabel)}/>
+                            {key}
+                        </ListItem>
                         : renderTree(nodes[key], key)
                 : null
                 )
             }
         </TreeItem>
     );
+
+    function handleCheck(isChecked, label){
+        if (isChecked) {
+            setLabels([...labels, label])
+        }else{
+            setLabels(labels.filter((i) => i !== label))
+        }
+        console.log(labels)
+    }
 
     // function handleOnClick() {
     //     var formdata = new FormData();
@@ -75,36 +86,45 @@ function App() {
     return (
         <Container>
             {/*<Button onClick={handleOnClick}>run get option</Button>*/}
-            <TreeView
-                aria-label="file system navigator"
-                defaultCollapseIcon={<ExpandMoreIcon/>}
-                defaultExpandIcon={<ChevronRightIcon/>}
-                sx={{height: 240, flexGrow: 1, maxWidth: 500, overflowY: 'auto'}}
-            >
-                {renderTree(options)}
-                {/*<TreeItem nodeId="1" label="Setting">*/}
-                {/*    <TreeItem nodeId="2" label="Mark">*/}
-                {/*        <TreeItem nodeId="3" label="Color">*/}
-                {/*            <TreeItem nodeId="4" label="Red" onClick={() => {setMarkColor("red")}}/>*/}
-                {/*            <TreeItem nodeId="5" label="Blue" onClick={() => {setMarkColor("blue")}}/>*/}
-                {/*            <TreeItem nodeId="6" label="Green" onClick={() => {setMarkColor("green")}}/>*/}
-                {/*        </TreeItem>*/}
-                {/*        <TreeItem nodeId="7" label="Size">*/}
-                {/*            <TreeItem nodeId="8" label="8" onClick={() => {setMarkSize(8)}}/>*/}
-                {/*            <TreeItem nodeId="9" label="16" onClick={() => {setMarkSize(16)}}/>*/}
-                {/*            <TreeItem nodeId="10" label="32" onClick={() => {setMarkSize(32)}}/>*/}
-                {/*        </TreeItem>*/}
-                {/*    </TreeItem>*/}
-                {/*    <TreeItem nodeId="11" label="Line">*/}
-                {/*        <TreeItem nodeId="12" label="Color">*/}
-                {/*            <TreeItem nodeId="13" label="Red" onClick={() => {setLineColor("red")}}/>*/}
-                {/*            <TreeItem nodeId="14" label="Blue" onClick={() => {setLineColor("blue")}}/>*/}
-                {/*            <TreeItem nodeId="15" label="Green" onClick={() => {setLineColor("green")}}/>*/}
-                {/*        </TreeItem>*/}
-                {/*    </TreeItem>*/}
-                {/*</TreeItem>*/}
+            <Grid container>
+                <Grid item xs={8}>
+                    <TreeView
+                        aria-label="option menu"
+                        defaultCollapseIcon={<ExpandMoreIcon/>}
+                        defaultExpandIcon={<ChevronRightIcon/>}
+                        sx={{height: 500, flexGrow: 1, maxWidth: 800, overflowY: 'auto'}}
+                    >
+                        {renderTree(options)}
+                        {/*<TreeItem nodeId="1" label="Setting">*/}
+                        {/*    <TreeItem nodeId="2" label="Mark">*/}
+                        {/*        <TreeItem nodeId="3" label="Color">*/}
+                        {/*            <TreeItem nodeId="4" label="Red" onClick={() => {setMarkColor("red")}}/>*/}
+                        {/*            <TreeItem nodeId="5" label="Blue" onClick={() => {setMarkColor("blue")}}/>*/}
+                        {/*            <TreeItem nodeId="6" label="Green" onClick={() => {setMarkColor("green")}}/>*/}
+                        {/*        </TreeItem>*/}
+                        {/*        <TreeItem nodeId="7" label="Size">*/}
+                        {/*            <TreeItem nodeId="8" label="8" onClick={() => {setMarkSize(8)}}/>*/}
+                        {/*            <TreeItem nodeId="9" label="16" onClick={() => {setMarkSize(16)}}/>*/}
+                        {/*            <TreeItem nodeId="10" label="32" onClick={() => {setMarkSize(32)}}/>*/}
+                        {/*        </TreeItem>*/}
+                        {/*    </TreeItem>*/}
+                        {/*    <TreeItem nodeId="11" label="Line">*/}
+                        {/*        <TreeItem nodeId="12" label="Color">*/}
+                        {/*            <TreeItem nodeId="13" label="Red" onClick={() => {setLineColor("red")}}/>*/}
+                        {/*            <TreeItem nodeId="14" label="Blue" onClick={() => {setLineColor("blue")}}/>*/}
+                        {/*            <TreeItem nodeId="15" label="Green" onClick={() => {setLineColor("green")}}/>*/}
+                        {/*        </TreeItem>*/}
+                        {/*    </TreeItem>*/}
+                        {/*</TreeItem>*/}
+                    </TreeView>
+                </Grid>
+                <Grid item xs={4}>
+                    <List>
+                        {labels.map((item) => <ListItem key={item}>{item}</ListItem>)}
+                    </List>
+                </Grid>
+            </Grid>
 
-            </TreeView>
 
             <header>First: 0~100 step: 10</header>
             <Slider
