@@ -7,6 +7,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import * as React from 'react';
 import { red, blue, green} from '@mui/material/colors';
 import $ from "jquery";
+import { useQuery } from 'react-query'
 
 const base_url = 'https://voyages3-api.crc.rice.edu/'
 const token = 'Token 3e9ed2e0fa70a1a5cb6f34eb7a30ebde208ecd8f'
@@ -18,37 +19,58 @@ function App() {
     const [markColor, setMarkColor] = useState("red");
     const [lineColor, setLineColor] = useState("red");
     const [markSize, setMarkSize] = useState(12);
-    const [lineSize, setLineSize] = useState(12);
+
+    const { isLoading, error, data: options } = useQuery('repoData', () => {
+            var formdata = new FormData();
+            formdata.append("hierarchical", "False");
+            return fetch(base_url + "voyage/", {
+                method: "OPTIONS",
+                body: formdata,
+                headers: {'Authorization': token}
+            }).then(res => res.json())
+        }
+    )
+
+    function isChildren(key) {
+        return key !== "id" && key !== "type" && key !== "label" && key !== "flatlabel"
+    }
+
+    function isLast(node) {
+        return Object.keys(node).length <= 3
+    }
+
+    // const a = {id:1, label: "a", b: {id:2, label: "b"}, c: {id: 3, label:"c", d: {id: 4, label: "d"}}}
+    // console.log(Object.keys(a).length)
+    var count = 0;
+    const renderTree = (nodes, key) => (
+        <TreeItem key={key} nodeId={""+count++} label={nodes.label}>
+            { Object.keys(nodes).map((key) =>
+                isChildren(key)
+                ? isLast(nodes[key])
+                        ? <TreeItem key={key} nodeId={""+count++} label={nodes[key].label}/>
+                        : renderTree(nodes[key], key)
+                : null
+                )
+            }
+        </TreeItem>
+    );
+
     // function handleOnClick() {
-    //     // $.ajax({
-    //     //     url: base_url + 'voyage/',
-    //     //     headers: {'Authorization': token},
-    //     //     method: 'option',
-    //     // });
-    //
-    //     // create a new XMLHttpRequest
-    //     var xhr = new XMLHttpRequest()
-    //
-    //     // get a callback when the server responds
-    //     xhr.addEventListener('load', () => {
-    //         // update the state of the component with the result here
-    //         console.log(xhr.responseText)
+    //     var formdata = new FormData();
+    //     formdata.append("hierarchical", "False");
+    //     fetch(base_url + "voyage/", {
+    //         method: "POST",
+    //         body: formdata,
+    //         headers: {'Authorization': token}
+    //     }).then(res => res.json()).then(res => {
+    //         console.log(res);
     //     })
-    //     // open the request with the verb and the url
-    //     xhr.open('GET', 'https://baijiahao.baidu.com/s?id=1716741332160365777&wfr=spider&for=pc')
-    //     // send the request
-    //     xhr.send()
-    //
-    //     // fetch(base_url + 'voyage/', {
-    //     //     method: "POST",
-    //     //     mode: "cors",
-    //     //     body: JSON.stringify({hierarchical: false}),
-    //     //     headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': token},
-    //     //     credentials: 'include',
-    //     // }).then(res => res.json()).then(res => {
-    //     //     console.log(res)
-    //     // })
+    //     console.log(formdata);
     // }
+
+    if (isLoading) return 'Loading...'
+
+    if (error) return 'An error has occurred: ' + error.message
 
     return (
         <Container>
@@ -59,27 +81,28 @@ function App() {
                 defaultExpandIcon={<ChevronRightIcon/>}
                 sx={{height: 240, flexGrow: 1, maxWidth: 500, overflowY: 'auto'}}
             >
-                <TreeItem nodeId="1" label="Setting">
-                    <TreeItem nodeId="2" label="Mark">
-                        <TreeItem nodeId="3" label="Color">
-                            <TreeItem nodeId="4" label="Red" onClick={() => {setMarkColor("red")}}/>
-                            <TreeItem nodeId="5" label="Blue" onClick={() => {setMarkColor("blue")}}/>
-                            <TreeItem nodeId="6" label="Green" onClick={() => {setMarkColor("green")}}/>
-                        </TreeItem>
-                        <TreeItem nodeId="7" label="Size">
-                            <TreeItem nodeId="8" label="8" onClick={() => {setMarkSize(8)}}/>
-                            <TreeItem nodeId="9" label="16" onClick={() => {setMarkSize(16)}}/>
-                            <TreeItem nodeId="10" label="32" onClick={() => {setMarkSize(32)}}/>
-                        </TreeItem>
-                    </TreeItem>
-                    <TreeItem nodeId="11" label="Line">
-                        <TreeItem nodeId="12" label="Color">
-                            <TreeItem nodeId="13" label="Red" onClick={() => {setLineColor("red")}}/>
-                            <TreeItem nodeId="14" label="Blue" onClick={() => {setLineColor("blue")}}/>
-                            <TreeItem nodeId="15" label="Green" onClick={() => {setLineColor("green")}}/>
-                        </TreeItem>
-                    </TreeItem>
-                </TreeItem>
+                {renderTree(options)}
+                {/*<TreeItem nodeId="1" label="Setting">*/}
+                {/*    <TreeItem nodeId="2" label="Mark">*/}
+                {/*        <TreeItem nodeId="3" label="Color">*/}
+                {/*            <TreeItem nodeId="4" label="Red" onClick={() => {setMarkColor("red")}}/>*/}
+                {/*            <TreeItem nodeId="5" label="Blue" onClick={() => {setMarkColor("blue")}}/>*/}
+                {/*            <TreeItem nodeId="6" label="Green" onClick={() => {setMarkColor("green")}}/>*/}
+                {/*        </TreeItem>*/}
+                {/*        <TreeItem nodeId="7" label="Size">*/}
+                {/*            <TreeItem nodeId="8" label="8" onClick={() => {setMarkSize(8)}}/>*/}
+                {/*            <TreeItem nodeId="9" label="16" onClick={() => {setMarkSize(16)}}/>*/}
+                {/*            <TreeItem nodeId="10" label="32" onClick={() => {setMarkSize(32)}}/>*/}
+                {/*        </TreeItem>*/}
+                {/*    </TreeItem>*/}
+                {/*    <TreeItem nodeId="11" label="Line">*/}
+                {/*        <TreeItem nodeId="12" label="Color">*/}
+                {/*            <TreeItem nodeId="13" label="Red" onClick={() => {setLineColor("red")}}/>*/}
+                {/*            <TreeItem nodeId="14" label="Blue" onClick={() => {setLineColor("blue")}}/>*/}
+                {/*            <TreeItem nodeId="15" label="Green" onClick={() => {setLineColor("green")}}/>*/}
+                {/*        </TreeItem>*/}
+                {/*    </TreeItem>*/}
+                {/*</TreeItem>*/}
 
             </TreeView>
 
