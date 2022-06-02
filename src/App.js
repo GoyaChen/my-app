@@ -10,19 +10,20 @@ import {
     Grid,
     List,
     ListItemText,
-    Card, CardContent, CardHeader, Box, Paper, Chip
+    Card, CardContent, CardHeader, Box, Paper, Chip, TextField
 } from '@mui/material';
 import {TreeView, TreeItem} from '@mui/lab';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import * as React from 'react';
-import { red, blue, green} from '@mui/material/colors';
 import { useQuery } from 'react-query'
-import { styled } from '@mui/material/styles';
+import { NavLink, useNavigate } from 'react-router-dom';
+
 const base_url = 'https://voyages3-api.crc.rice.edu/'
-const token = 'Token 0bfda2118118484d52aeec86812269aadeb37c67'
+const token = 'Token 681437e129e58364eeb754a654ef847f18c54e5f'
 
 function App() {
+    let navigate = useNavigate();
     const [first, setFirst] = useState(1);
     const [second, setSecond] = useState(2);
     const [third, setThird] = useState(3);
@@ -30,7 +31,8 @@ function App() {
     const [lineColor, setLineColor] = useState("red");
     const [markSize, setMarkSize] = useState(12);
     const [labels, setLabels] = useState([]);
-    const [data, setData] = useState("");
+    // var data = "init value";
+    const [data, setData] = useState("init value");
 
     const { isLoading, error, data: options } = useQuery('repoData', () => {
             return fetch(base_url + "voyage/", {
@@ -48,11 +50,9 @@ function App() {
         return Object.keys(node).length <= 3
     }
 
-    // const a = {id:1, label: "a", b: {id:2, label: "b"}, c: {id: 3, label:"c", d: {id: 4, label: "d"}}}
-    // console.log(Object.keys(a).length)
     var count = 0;
     const renderTree = (nodes, name) => (
-        <TreeItem key={nodes.label} nodeId={""+count++} label={nodes.label? nodes.label:"menu"}>
+        <TreeItem key={nodes.label} nodeId={""+count++} label={nodes.label? nodes.label:"Menu"}>
             { Object.keys(nodes).map((key) =>
                 isChildren(key)
                 ? isLast(nodes[key])
@@ -66,14 +66,6 @@ function App() {
             }
         </TreeItem>
     );
-
-    const Item = styled(Paper)(({ theme }) => ({
-        backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-        ...theme.typography.body2,
-        padding: theme.spacing(1),
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-    }));
 
     function handleCheck(isChecked, label){
         if (isChecked) {
@@ -93,8 +85,14 @@ function App() {
             headers: {'Authorization': token}
         }).then(res => res.json()).then(res => {
             setData(res);
+            // data = res;
         })
         console.log(data);
+    }
+
+    function handleClick(event) {
+        event.preventDefault();
+        navigate("/table");
     }
 
     if (isLoading) return 'Loading...'
@@ -103,16 +101,17 @@ function App() {
 
     return (
         <Container>
-            <Button onClick={handleOnClick}>run get option</Button>
+            <Button onClick={handleClick}>Table</Button>
+            <NavLink to={"/table"}>table</NavLink>
+
             <Grid container spacing={2}>
                 <Grid item xs={8}>
-                    <Card>
+                    <Card sx={{height: 500, flexGrow: 1, maxWidth: 800, overflowY: 'auto'}}>
                         <CardContent>
                             <TreeView
                                 aria-label="option menu"
                                 defaultCollapseIcon={<ExpandMoreIcon/>}
                                 defaultExpandIcon={<ChevronRightIcon/>}
-                                sx={{height: 500, flexGrow: 1, maxWidth: 800, overflowY: 'auto'}}
                             >
                                 {renderTree(options, "")}
                                 {/*<TreeItem nodeId="1" label="Setting">*/}
@@ -141,12 +140,12 @@ function App() {
                     </Card>
                 </Grid>
                 <Grid item xs={4}>
-                    <Card>
+                    <Card  sx={{ flexGrow: 1, height: 500, overflowY: 'auto'}}>
                         <CardHeader
                             title="Selected Options"
                         />
                         <CardContent>
-                            <Box sx={{ flexGrow: 1, height: 420, overflowY: 'auto'}}>
+                            <Box>
                                 <Grid container spacing={2}>
                                     {labels.map((item) =>
                                         <Grid item>
@@ -154,74 +153,64 @@ function App() {
                                         </Grid>)}
                                 </Grid>
                             </Box>
-                            <List >
-
-
-                            </List>
                         </CardContent>
                     </Card>
                 </Grid>
             </Grid>
 
+            <Container>
+                <header>First: 0~100 step: 10</header>
+                <Slider
+                    aria-label="first"
+                    value={first}
+                    onChange={(e, v) => {setFirst(v)}}
+                    max={100}
+                    min={0}
+                    step={10}
+                />
+                <header>Second: 50~150</header>
+                <Slider
+                    aria-label="second"
+                    value={second}
+                    onChange={(e, v) => {setSecond(v)}}
+                    max={150}
+                    min={50}
+                    color="secondary"
+                />
+                <header>Third: -50~50</header>
+                <Slider
+                    aria-label="third"
+                    value={third}
+                    onChange={(e, v) => {setThird(v)}}
+                    max={50}
+                    min={-50}
+                />
 
-            <header>First: 0~100 step: 10</header>
-            <Slider
-                aria-label="first"
-                value={first}
-                onChange={(e, v) => {setFirst(v)}}
-                max={100}
-                min={0}
-                step={10}
-            />
-            <header>Second: 50~150</header>
-            <Slider
-                aria-label="second"
-                value={second}
-                onChange={(e, v) => {setSecond(v)}}
-                max={150}
-                min={50}
-                color="secondary"
-            />
-            <header>Third: -50~50</header>
-            <Slider
-                aria-label="third"
-                value={third}
-                onChange={(e, v) => {setThird(v)}}
-                max={50}
-                min={-50}
-            />
+                <Plot
+                    data={[
+                        {
+                            y: [first, second, third],
+                            type: 'scatter',
+                            mode: 'lines+markers',
+                            marker: {color: markColor, size: markSize},
+                            line: {color: lineColor}
+                        },
+                    ]}
+                />
+            </Container>
 
-            <Plot
-                data={[
-                    {
-                        y: [first, second, third],
-                        type: 'scatter',
-                        mode: 'lines+markers',
-                        marker: {color: markColor, size: markSize},
-                        line: {color: lineColor}
-                    },
-                ]}
-                // layout={{
-                //     updatemenus: [
-                //         {
-                //             y: 0.8,
-                //             yanchor: 'top',
-                //             buttons: [{
-                //                 method: 'restyle',
-                //                 args: ['line.color', 'red'],
-                //                 label: 'red'
-                //             }, {
-                //                 method: 'restyle',
-                //                 args: ['line.color', 'blue'],
-                //                 label: 'blue'
-                //             }, {
-                //                 method: 'restyle',
-                //                 args: ['line.color', 'green'],
-                //                 label: 'green'
-                //             }]
-                //         }]
-                // }}
-            />
+            <Container>
+                <Card>
+                    <CardHeader title={"WhiteBoard"}/>
+                    <CardContent>
+                        <p>asdqwdvfqwdas</p>
+                        <Button onClick={handleOnClick}>run get option</Button>
+                        {/*<TextField id="outlined-basic" label="Outlined" variant="outlined"/>*/}
+                        <p>{JSON.stringify(data)}</p>
+                    </CardContent>
+                </Card>
+            </Container>
+
         </Container>
     );
 }

@@ -4,14 +4,22 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { QueryClient, QueryClientProvider} from 'react-query'
-const queryClient = new QueryClient()
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Table from './table';
 
+const queryClient = new QueryClient()
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
   <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-          <App />
-      </QueryClientProvider>
+      <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+              <Routes>
+                  <Route path="/" element={<App />} />
+                  <Route path="table" element={<Table />} />
+              </Routes>
+          </QueryClientProvider>
+      </BrowserRouter>
   </React.StrictMode>
 );
 
