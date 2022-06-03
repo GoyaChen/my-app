@@ -18,9 +18,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import * as React from 'react';
 import { useQuery } from 'react-query'
 import { NavLink, useNavigate } from 'react-router-dom';
-
-const base_url = 'https://voyages3-api.crc.rice.edu/'
-const token = 'Token 681437e129e58364eeb754a654ef847f18c54e5f'
+import {base_url, headers} from "./status";
 
 function App() {
     let navigate = useNavigate();
@@ -37,7 +35,7 @@ function App() {
     const { isLoading, error, data: options } = useQuery('repoData', () => {
             return fetch(base_url + "voyage/", {
                 method: "OPTIONS",
-                headers: {'Authorization': token}
+                headers: headers
             }).then(res => res.json())
         }
     )
@@ -82,7 +80,7 @@ function App() {
         fetch(base_url + "voyage/", {
             method: "POST",
             body: formdata,
-            headers: {'Authorization': token}
+            headers: {'Authorization': headers}
         }).then(res => res.json()).then(res => {
             setData(res);
             // data = res;
